@@ -10,4 +10,6 @@ Next steps are to smooth velocity data,
 create a Stroke rate variable from the velocity data 
 and add a distance column for analysis.
 
+vbox.py is a file from github user Quentinlets which does similar work and is the basis of this code.
+
 
