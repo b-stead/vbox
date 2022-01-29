@@ -123,7 +123,7 @@ class VBox(object):
       from matplotlib import pyplot as plt
       import numpy as np
 
-      dataframe = pd.read_csv("test.csv")
+      dataframe = pd.read_csv(self.filename)
 
       x = dataframe.time_of_day
       y = dataframe.velocity
