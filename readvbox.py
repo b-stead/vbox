@@ -97,7 +97,7 @@ class VBox(object):
                         #elapsed time
 
 
-                        #distance
+                        #distance NB!!Remove hard coding of time interval to account for 10 or 20Hz measurement
                         fields.append( float(fields[4])*0.05)
 
                         # If there's no GPS signal, we won't have absolute time.
@@ -111,6 +111,8 @@ class VBox(object):
                         self.data.append(tup)
                         #print(tup)
             df = pd.DataFrame(self.data)
+            # delete excess columns not required, NB!! recheck if adding other columns
+            df = df.drop(df.columns[[5,6,7,8,9,10,11,12,13]], axis=1)
             
             #print(df)
 
