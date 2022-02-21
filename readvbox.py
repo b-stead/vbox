@@ -2,6 +2,7 @@
 
 import collections
 import csv
+from fileinput import filename
 import json
 from pkgutil import get_data
 import re
@@ -9,6 +10,7 @@ import sys
 import time
 from datetime import datetime
 import os
+from tkinter import font
 import pandas as pd
 from pprint import pprint
 import csv
@@ -98,6 +100,7 @@ class VBox(object):
 
 
                         #distance NB!!Remove hard coding of time interval to account for 10 or 20Hz measurement
+                        #can be moved to cumulative time section for this
                         fields.append( float(fields[4])*0.05)
 
                         # If there's no GPS signal, we won't have absolute time.
@@ -111,13 +114,18 @@ class VBox(object):
                         self.data.append(tup)
                         #print(tup)
             df = pd.DataFrame(self.data)
+
+            #add cumulative time
+            df['SplitTime'] = df.time_of_day.diff()
+            df['SessionTime'] = df.SplitTime.cumsum()
+
             # delete excess columns not required, NB!! recheck if adding other columns
-            df = df.drop(df.columns[[5,6,7,8,9,10,11,12,13]], axis=1)
+            #df = df.drop(df.columns[[5,6,7,8,9,10,11,12,13]], axis=1)
             
-            #print(df)
+            #return(df)
 
         #convert df to CSV
-        df.to_csv('test.csv', index=False)           
+        df.to_csv('DA500.csv', index=False)           
 
 
     # create graph of data for velocity over time
@@ -126,20 +134,29 @@ class VBox(object):
       import numpy as np
 
       dataframe = pd.read_csv(self.filename)
-
-      x = dataframe.time_of_day
+      
+      x = dataframe.SessionTime
       y = dataframe.velocity
 
+      fig, ax = plt.subplots()
+      ax.scatter(x,y)
 
-      plt.scatter(x,y)
+      ax.set_xlabel('Time (Sec)', fontsize=15)
+      ax.set_ylabel('Velocity (Km/h)', fontsize=15)
+      # get dynamic title set to uploaded csv
+      t = self.filename
+      ax.set_title('%s' %t, fontsize=15)
+
+      #plt.scatter(x,y)
       plt.show()
 
 
 c = VBox('DA500.vbo')
 a = c.get_data()
 
-b = VBox('test.csv')
+b = VBox('DA500.csv')
 d = b.get_graph()
+
 
 
 
