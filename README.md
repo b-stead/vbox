@@ -6,7 +6,7 @@ There are two files that extract data,
 get_data.py which works as a basic script,
 readvbox2.py is an OOP script which is now also working
 
-The Data filtering for velocity and stroke raste are taken care of in the following files 
+The Data filtering for velocity and stroke rate are taken care of in the following files 
 butterworth.py SR.py
 Next steps are to add these into the main script once filtering is checked for it's accuracy and fit.
 
