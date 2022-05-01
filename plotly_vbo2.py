@@ -6,11 +6,9 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import dash_bootstrap_components as dbc
 import pandas as pd
-from get_data2 import df4
-from table import dff
 import json
 
-dff_t=dff
+df = pd.read_csv('DA500.csv')
 external_stylesheets = [dbc.themes.DARKLY] # enables dark mode in plot using bootstrap
 app = Dash(__name__)
 
@@ -135,12 +133,12 @@ def display_(radio_value):
 
     # add traces
     fig.add_trace(
-        go.Scatter(x=df4["Distance"], y=df4["Speed"], name= "Speed (Kph)"),
+        go.Scatter(x=df["Distance"], y=df["Speed"], name= "Speed (Kph)"),
         secondary_y=False,
     )
 
     fig.add_trace(
-        go.Scatter(x=df4["Distance"], y=df4["StrokeRate"], mode='lines+markers',
+        go.Scatter(x=df["Distance"], y=df["StrokeRate"], mode='lines+markers',
         connectgaps= True, name= "Stroke Rate", line=dict(width=1.5,color='orange'),marker=dict(size=2, opacity=0.5)),
         secondary_y=radio_value == 'Secondary',
     )
