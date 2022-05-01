@@ -1,5 +1,4 @@
 import collections
-import csv
 import re
 import sys
 import time
@@ -7,6 +6,9 @@ import datetime
 import os
 from pprint import pprint
 import pandas as pd
+from scipy import signal
+from scipy.signal import find_peaks
+import numpy as np
 
 #Variables
 section = None
@@ -107,6 +109,83 @@ with open(file) as raw:
     #add cumulative time
     #df['SplitTime'] = df.time_of_day.diff()
     #df['SessionTime'] = df.SplitTime.cumsum()
-       
-print(df[:5])
+
+######################
+# BUTTERWORTH FILTER #
+######################
+x=df.time_of_day
+y=df.velocity
+   
+# Sample rate and desired cutoff frequencies (in Hz).
+order = 4
+fs = 20
+cut = 0.65
+
+#apply filter
+sos = signal.butter(2,0.65, fs=20, output='sos')
+filt2 = signal.sosfilt(sos, y)
+df['Speed']=filt2
+
+###########################################
+#CALCULATE STROKE RATE FROM VELOCITY CURVE#
+###########################################
+df2 = df[['velocity', 'time_of_day', 'Distance','Speed', 'SplitD']].copy()
+x=df2.Distance
+y=df2.Speed
+v=df2.Speed
+
+#Find peaks
+peaks = find_peaks(y, height=0)
+height = peaks[1]['peak_heights'] #list of the heights of the peaks
+peak_pos = x[peaks[0]] #list of the peaks positions
+
+#Finding the minima as stroke start is at lowest point i.e. trough phase
+yneg = y*-1
+minima = find_peaks(yneg)
+min_height = yneg[minima[0]] #list of the mirrored minima heights
+#minima_height = minima[1]['peak_heights']
+min_pos = x[minima[0]] #list of the minima positions
+#Plotting minima
+"""
+fig = plt.figure()
+ax = fig.subplots()
+ax.scatter(x,y)
+ax.scatter(peak_pos, height, color = 'r', s = 15, marker = 'x', label = 'Maxima')
+ax.scatter(min_pos, min_height*-1, color = 'gold', s = 15, marker = 'X', label = 'Minima')
+ax.legend()
+ax.grid()
+plt.show()
+"""
+
+#concat min_pos& min_height into dataframe
+#add stroke position back onto df values
+s=pd.concat([min_height, min_pos], axis=1)
+s=s.rename(columns = {'Distance' : 'stroke'})
+s['count'] = s.groupby('stroke').cumcount() +1
+s.pop('Speed')
+
+#add time values onto s for calculations
+time=df2.filter(['time_of_day'])
+s=s.join(time)
+
+#time diff between strokes, convert to stroke/min
+s['time_diff'] = s['time_of_day'].diff()
+s['Str_Rate']=60/s['time_diff']
+
+#rolling average for SR windows of 3 - Need to change to integer
+s['StrokeRate'] = s['Str_Rate'].rolling(3).mean()
+s.pop('time_of_day')
+df3=df2.join(s)
+df3['count']=df3['count'].fillna(0)
+df3['boolean'] = df3['count'].astype('bool')
+df4=df3[['velocity', 'Distance', 'Speed', 'StrokeRate', 'SplitD']]
+
+####################################
+#Convert df4 in to csv for analysis#
+####################################
+  
+os.makedirs('folder/subfolder', exist_ok=True)
+n = re.findall(r"^[ \w-]+", file)
+name = str(n)[2:-2]
+df4.to_csv(f'folder//subfolder//{name}.csv')
 
