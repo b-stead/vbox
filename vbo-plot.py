@@ -1,4 +1,4 @@
-# Run this app with `python vbo-plot.py.py` and
+# Run this app with `python3 vbo-plot.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 
 from dash import Dash, dcc, html, Input, Output, State, dash_table
